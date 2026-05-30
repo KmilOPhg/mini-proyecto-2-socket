@@ -1,17 +1,23 @@
 type PresenciaUsuario = {
   uid: string;
   nombre: string;
+  avatar: string | null;
 };
 
 const presenciaPorSala = new Map<string, Map<string, PresenciaUsuario>>();
 
-export function registrarPresencia(salaId: string, uid: string, nombre: string): PresenciaUsuario[] {
+export function registrarPresencia(
+  salaId: string,
+  uid: string,
+  nombre: string,
+  avatar: string | null = null,
+): PresenciaUsuario[] {
   let sala = presenciaPorSala.get(salaId);
   if (!sala) {
     sala = new Map();
     presenciaPorSala.set(salaId, sala);
   }
-  sala.set(uid, { uid, nombre });
+  sala.set(uid, { uid, nombre, avatar });
   return Array.from(sala.values());
 }
 

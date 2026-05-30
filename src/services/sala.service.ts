@@ -94,19 +94,27 @@ function verificarCupoEnLinea(salaId: string, row: SalaFirestore, uid: string): 
   }
 }
 
-/** Nombre visible en salas: nombre completo, username o email. */
-export async function obtenerNombreVisible(uid: string): Promise<string> {
+/** Perfil visible en salas: nombre y avatar desde Firestore. */
+export async function obtenerPerfilVisible(uid: string): Promise<{ nombre: string; avatar: string | null }> {
   const snap = await getDb().collection(collections.usuarios).doc(uid).get();
   if (!snap.exists) throw new AppError("Usuario no encontrado.", 404);
   const data = snap.data()!;
   const nombres = typeof data.nombres === "string" ? data.nombres.trim() : "";
   const apellidos = typeof data.apellidos === "string" ? data.apellidos.trim() : "";
   const compuesto = `${nombres} ${apellidos}`.trim();
-  if (compuesto) return compuesto;
-  if (typeof data.username === "string" && data.username.trim()) {
-    return data.username.trim();
-  }
-  return typeof data.email === "string" ? data.email : uid;
+  let nombre: string;
+  if (compuesto) nombre = compuesto;
+  else if (typeof data.username === "string" && data.username.trim()) nombre = data.username.trim();
+  else nombre = typeof data.email === "string" ? data.email : uid;
+  const avatar =
+    typeof data.avatar === "string" && data.avatar.trim() ? data.avatar.trim() : null;
+  return { nombre, avatar };
+}
+
+/** Nombre visible en salas: nombre completo, username o email. */
+export async function obtenerNombreVisible(uid: string): Promise<string> {
+  const { nombre } = await obtenerPerfilVisible(uid);
+  return nombre;
 }
 
 async function obtenerSala(salaId: string, uid: string): Promise<SalaPublica> {

@@ -112,9 +112,9 @@ export function initSocketServer(httpServer: HttpServer): Server {
         const codigoSala = sala.codigoInvitacion ?? salaId;
         await socket.join(socketRoomName(salaId));
         salasActivas.set(salaId, codigoSala);
-        const nombre = await salaService.obtenerNombreVisible(data.uid);
+        const { nombre, avatar } = await salaService.obtenerPerfilVisible(data.uid);
         data.nombre = nombre;
-        registrarPresencia(salaId, data.uid, nombre);
+        registrarPresencia(salaId, data.uid, nombre, avatar);
         emitirPresencia(io, salaId);
         logSalaUsuario("unió", codigoSala, data.uid, nombre);
 
@@ -126,10 +126,10 @@ export function initSocketServer(httpServer: HttpServer): Server {
 
     socket.on("perfil:actualizar", async (ack?: (res: unknown) => void) => {
       try {
-        const nombre = await salaService.obtenerNombreVisible(data.uid);
+        const { nombre, avatar } = await salaService.obtenerPerfilVisible(data.uid);
         data.nombre = nombre;
         for (const salaId of salasActivas.keys()) {
-          registrarPresencia(salaId, data.uid, nombre);
+          registrarPresencia(salaId, data.uid, nombre, avatar);
           emitirPresencia(io, salaId);
         }
         ack?.({ ok: true, nombre });
