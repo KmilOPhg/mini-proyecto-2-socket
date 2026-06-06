@@ -10,6 +10,7 @@ import {
   registrarPresencia,
 } from "./presence.js";
 import { socketRoomName, verifySocketJwt } from "./auth.js";
+import { origenPermitido } from "../utils/corsOrigins.js";
 
 type SocketData = {
   uid: string;
@@ -30,13 +31,8 @@ export function notificarSalaTerminada(
   void ioInstance.in(room).socketsLeave(room);
 }
 
-function normalizarOrigen(valor?: string): string {
-  return (valor || "").replace(/\/$/, "").toLowerCase();
-}
-
 function obtenerOrigenesPermitidos(): string[] {
   return [
-    process.env.FRONTEND_URL,
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:5174",
@@ -47,9 +43,7 @@ function obtenerOrigenesPermitidos(): string[] {
     "http://127.0.0.1:5176",
     "http://localhost:1206",
     "http://127.0.0.1:1206",
-  ]
-    .filter(Boolean)
-    .map((origen) => normalizarOrigen(origen));
+  ];
 }
 
 function emitirPresencia(io: Server, salaId: string): void {
@@ -67,9 +61,7 @@ export function initSocketServer(httpServer: HttpServer): Server {
   const io = new Server(httpServer, {
     cors: {
       origin: (origin, callback) => {
-        if (!origin) return callback(null, true);
-        const permitidos = new Set(obtenerOrigenesPermitidos());
-        if (permitidos.has(normalizarOrigen(origin))) return callback(null, true);
+        if (origenPermitido(origin, obtenerOrigenesPermitidos())) return callback(null, true);
         return callback(new Error("No permitido por CORS"));
       },
       credentials: true,
