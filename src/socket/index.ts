@@ -33,6 +33,7 @@ export function notificarSalaTerminada(
 
 function obtenerOrigenesPermitidos(): string[] {
   return [
+    process.env.FRONTEND_URL,
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:5174",
@@ -43,7 +44,7 @@ function obtenerOrigenesPermitidos(): string[] {
     "http://127.0.0.1:5176",
     "http://localhost:1206",
     "http://127.0.0.1:1206",
-  ];
+  ].filter((o): o is string => typeof o === "string");
 }
 
 function emitirPresencia(io: Server, salaId: string): void {
